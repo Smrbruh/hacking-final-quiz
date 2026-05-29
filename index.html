@@ -2380,11 +2380,6 @@ function renderReviewList(mistakes) {
 window.addEventListener('load', () => {
   initStartScreen();
 
-  // Update initial toggle states
-  state.shuffleQ = true;
-  state.shuffleA = true;
-  state.instantMode = false;
-
   // Hide loading overlay
   setTimeout(() => {
     const overlay = getEl('loading-overlay');
