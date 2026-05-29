@@ -1,0 +1,2399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackLab QUIZ</title>
+<style>
+/* ============================================
+   HACKLAB QUIZ — FUTURISTIC CYBERPUNK THEME
+   ============================================ */
+
+/* --- CSS Variables --- */
+:root {
+  --bg-deep:       #050a0f;
+  --bg-panel:      #080e16;
+  --bg-card:       #0d1520;
+  --bg-card2:      #101a28;
+  --border:        #1a2d45;
+  --border-glow:   #00d4ff;
+  --accent-cyan:   #00d4ff;
+  --accent-blue:   #0088ff;
+  --accent-green:  #00ff88;
+  --accent-red:    #ff3355;
+  --accent-yellow: #ffcc00;
+  --text-primary:  #e0f0ff;
+  --text-secondary:#6a8aaa;
+  --text-dim:      #3a5070;
+  --correct-bg:    rgba(0, 255, 136, 0.12);
+  --correct-border:#00ff88;
+  --wrong-bg:      rgba(255, 51, 85, 0.12);
+  --wrong-border:  #ff3355;
+  --selected-bg:   rgba(0, 212, 255, 0.12);
+  --font-mono:     'Courier New', 'Lucida Console', monospace;
+  --font-display:  'Trebuchet MS', 'Arial Black', sans-serif;
+  --transition:    0.2s ease;
+  --radius:        8px;
+  --radius-lg:     14px;
+}
+
+/* --- Reset & Base --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- Animated Background Grid --- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,136,255,0.08), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Layout Wrapper --- */
+#app {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 16px 40px;
+}
+
+/* --- Screens --- */
+.screen { display: none; width: 100%; max-width: 820px; }
+.screen.active { display: flex; flex-direction: column; align-items: center; animation: fadeIn 0.3s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulseGlow { 0%,100% { text-shadow: 0 0 20px rgba(0,212,255,0.5); } 50% { text-shadow: 0 0 40px rgba(0,212,255,0.9), 0 0 80px rgba(0,136,255,0.3); } }
+@keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(100vh); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================
+   START SCREEN
+   ============================================ */
+#screen-start { gap: 28px; padding-top: 30px; }
+
+.logo-wrap {
+  text-align: center;
+  padding: 10px 0;
+}
+
+.logo-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 6px;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.logo-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 8vw, 64px);
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+  background: linear-gradient(135deg, #00d4ff 0%, #0088ff 50%, #00ffcc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: pulseGlow 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(0,212,255,0.3));
+}
+
+.logo-subtitle {
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.hacker-icon {
+  font-size: 48px;
+  display: block;
+  margin: 0 auto 8px;
+  filter: drop-shadow(0 0 12px rgba(0,212,255,0.6));
+}
+
+/* Stats bar on start */
+.quiz-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.meta-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: var(--accent-cyan);
+  letter-spacing: 1px;
+}
+
+.meta-pill span { color: var(--text-secondary); }
+
+/* Topic selector */
+.topic-select-wrap {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.topic-select-wrap h3 {
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.topic-btn {
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topic-btn:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+.topic-btn.selected { border-color: var(--accent-cyan); background: rgba(0,212,255,0.08); color: var(--accent-cyan); }
+.topic-btn .t-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+.topic-btn.selected .t-dot { background: var(--accent-cyan); box-shadow: 0 0 6px var(--accent-cyan); }
+
+.topic-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 2px 0;
+  transition: var(--transition);
+}
+.link-btn:hover { color: var(--accent-cyan); }
+
+/* Settings row */
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+.toggle-opt {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: var(--transition);
+  user-select: none;
+}
+
+.toggle-opt input { display: none; }
+.toggle-opt:has(input:checked),
+.toggle-opt.on { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,212,255,0.08); }
+
+.toggle-dot {
+  width: 28px; height: 16px;
+  background: var(--border);
+  border-radius: 8px;
+  position: relative;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.toggle-dot::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 12px; height: 12px;
+  background: var(--text-dim);
+  border-radius: 50%;
+  transition: var(--transition);
+}
+.toggle-opt.on .toggle-dot { background: rgba(0,212,255,0.3); }
+.toggle-opt.on .toggle-dot::after { left: 14px; background: var(--accent-cyan); }
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: var(--radius);
+  border: none;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent);
+  opacity: 0;
+  transition: var(--transition);
+}
+.btn:hover::before { opacity: 1; }
+
+.btn-primary {
+  background: linear-gradient(135deg, #0088ff, #00d4ff);
+  color: #000;
+  box-shadow: 0 0 20px rgba(0,136,255,0.4), 0 4px 12px rgba(0,0,0,0.4);
+}
+.btn-primary:hover { box-shadow: 0 0 30px rgba(0,212,255,0.6), 0 4px 16px rgba(0,0,0,0.5); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  background: var(--bg-card2);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+
+.btn:disabled { opacity: 0.35; pointer-events: none; }
+.btn-lg { padding: 16px 40px; font-size: 14px; letter-spacing: 3px; }
+
+/* ============================================
+   QUIZ SCREEN
+   ============================================ */
+#screen-quiz {
+  gap: 0;
+  padding-top: 10px;
+}
+
+/* Header */
+.quiz-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quiz-logo-sm {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #00d4ff, #0088ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.score-live {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.score-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.score-chip.correct { border-color: rgba(0,255,136,0.4); color: var(--accent-green); }
+.score-chip.wrong { border-color: rgba(255,51,85,0.4); color: var(--accent-red); }
+
+/* Progress bar */
+.progress-wrap {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-card2);
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(0,212,255,0.5);
+}
+
+/* Topic badge */
+.topic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  align-self: flex-start;
+}
+
+.topic-badge::before {
+  content: '■';
+  font-size: 6px;
+  color: var(--accent-cyan);
+}
+
+/* Difficulty badge */
+.diff-badge {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  margin-left: 8px;
+  font-weight: 700;
+}
+.diff-easy { background: rgba(0,255,136,0.12); color: var(--accent-green); border: 1px solid rgba(0,255,136,0.3); }
+.diff-medium { background: rgba(255,204,0,0.12); color: var(--accent-yellow); border: 1px solid rgba(255,204,0,0.3); }
+.diff-hard { background: rgba(255,51,85,0.12); color: var(--accent-red); border: 1px solid rgba(255,51,85,0.3); }
+
+/* Question card */
+.question-card {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.question-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan), transparent);
+}
+
+.q-number {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.q-text {
+  font-size: clamp(14px, 2.5vw, 17px);
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+/* Answer options */
+.options-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.option-btn {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.option-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.option-letter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 5px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.option-text {
+  flex: 1;
+  line-height: 1.55;
+}
+
+/* Hover state */
+.option-btn:not(.answered):hover {
+  border-color: var(--accent-cyan);
+  background: var(--selected-bg);
+}
+.option-btn:not(.answered):hover .option-letter {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+/* Selected/Pending state (before confirm) */
+.option-btn.selected:not(.correct):not(.wrong) {
+  border-color: var(--accent-cyan);
+  background: var(--selected-bg);
+}
+.option-btn.selected:not(.correct):not(.wrong) .option-letter {
+  background: var(--accent-cyan);
+  color: #000;
+  border-color: var(--accent-cyan);
+}
+
+/* Correct state */
+.option-btn.correct {
+  border-color: var(--correct-border);
+  background: var(--correct-bg);
+  cursor: default;
+}
+.option-btn.correct .option-letter {
+  background: var(--accent-green);
+  color: #000;
+  border-color: var(--accent-green);
+}
+
+/* Wrong state */
+.option-btn.wrong {
+  border-color: var(--wrong-border);
+  background: var(--wrong-bg);
+  cursor: default;
+}
+.option-btn.wrong .option-letter {
+  background: var(--accent-red);
+  color: #fff;
+  border-color: var(--accent-red);
+}
+
+/* Dimmed state (after answer) */
+.option-btn.dimmed {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Feedback banner */
+.feedback-banner {
+  width: 100%;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-size: 13px;
+  display: none;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  animation: fadeIn 0.2s ease;
+}
+
+.feedback-banner.show { display: flex; }
+.feedback-banner.correct-fb { background: var(--correct-bg); border: 1px solid rgba(0,255,136,0.3); color: var(--accent-green); }
+.feedback-banner.wrong-fb { background: var(--wrong-bg); border: 1px solid rgba(255,51,85,0.3); color: var(--accent-red); }
+.feedback-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.feedback-text { flex: 1; color: var(--text-primary); line-height: 1.5; }
+.feedback-text strong { color: inherit; }
+
+/* Navigation */
+.quiz-nav {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.nav-left { display: flex; gap: 8px; }
+.nav-right { display: flex; gap: 8px; }
+
+/* ============================================
+   RESULTS SCREEN
+   ============================================ */
+#screen-results { gap: 24px; padding-top: 20px; }
+
+.results-header { text-align: center; }
+
+.results-title {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 5vw, 36px);
+  font-weight: 900;
+  background: linear-gradient(135deg, #00d4ff, #0088ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+
+.rating-badge {
+  display: inline-block;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+.rating-excellent { background: rgba(0,255,136,0.12); color: var(--accent-green); border: 1px solid rgba(0,255,136,0.4); box-shadow: 0 0 16px rgba(0,255,136,0.2); }
+.rating-good { background: rgba(0,212,255,0.12); color: var(--accent-cyan); border: 1px solid rgba(0,212,255,0.4); box-shadow: 0 0 16px rgba(0,212,255,0.2); }
+.rating-average { background: rgba(255,204,0,0.12); color: var(--accent-yellow); border: 1px solid rgba(255,204,0,0.4); }
+.rating-review { background: rgba(255,51,85,0.12); color: var(--accent-red); border: 1px solid rgba(255,51,85,0.4); }
+
+/* Score circle */
+.score-circle-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.score-circle {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent-cyan) 0%, var(--accent-blue) var(--pct), var(--bg-card2) var(--pct));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 0 30px rgba(0,212,255,0.2);
+}
+
+.score-circle-inner {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+}
+
+.score-pct {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--accent-cyan);
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+@media (min-width: 480px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.stat-lbl {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.stat-card.c-correct .stat-num { color: var(--accent-green); }
+.stat-card.c-wrong .stat-num { color: var(--accent-red); }
+.stat-card.c-total .stat-num { color: var(--accent-cyan); }
+.stat-card.c-score .stat-num { color: var(--accent-blue); }
+
+/* Results actions */
+.results-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ============================================
+   REVIEW SCREEN
+   ============================================ */
+#screen-review { gap: 20px; padding-top: 20px; }
+
+.review-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.review-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--text-primary);
+}
+
+.review-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+.review-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.review-item::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  background: var(--accent-red);
+}
+
+.review-q-num {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.review-q-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+.review-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-answer {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.review-answer.r-correct {
+  border-color: rgba(0,255,136,0.3);
+  background: var(--correct-bg);
+  color: var(--accent-green);
+}
+
+.review-answer.r-wrong {
+  border-color: rgba(255,51,85,0.3);
+  background: var(--wrong-bg);
+  color: var(--accent-red);
+}
+
+.review-answer-icon { flex-shrink: 0; font-size: 14px; }
+.review-answer-text { flex: 1; color: var(--text-primary); }
+
+/* ============================================
+   TOPIC FILTER BAR (review)
+   ============================================ */
+.filter-bar {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.filter-chip:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+.filter-chip.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(0,212,255,0.08); }
+
+/* ============================================
+   LOADING OVERLAY
+   ============================================ */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: 20px;
+}
+
+.loader-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent-cyan);
+  animation: spin 0.8s linear infinite;
+}
+
+.loader-text {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+/* ============================================
+   MOBILE RESPONSIVENESS
+   ============================================ */
+@media (max-width: 600px) {
+  #app { padding: 14px 12px 30px; }
+  .question-card { padding: 18px 16px; }
+  .option-btn { padding: 12px 14px; font-size: 12px; }
+  .option-letter { width: 22px; height: 22px; min-width: 22px; font-size: 10px; }
+  .quiz-nav { gap: 8px; }
+  .btn { padding: 10px 20px; font-size: 12px; letter-spacing: 1px; }
+  .btn-lg { padding: 14px 28px; font-size: 13px; }
+  .topic-grid { grid-template-columns: 1fr 1fr; }
+  .score-circle { width: 130px; height: 130px; }
+  .score-circle-inner { width: 105px; height: 105px; }
+  .score-pct { font-size: 28px; }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+
+/* Prevent text selection on buttons */
+button { -webkit-tap-highlight-color: transparent; }
+
+/* Separator */
+.sep {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.5;
+}
+
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="loading-overlay">
+  <div class="loader-ring"></div>
+  <div class="loader-text">Initializing HackLab QUIZ</div>
+</div>
+
+<div id="app">
+
+  <!-- ==================== START SCREEN ==================== -->
+  <div id="screen-start" class="screen">
+
+    <div class="logo-wrap">
+      <span class="logo-tag">ASTANA IT UNIVERSITY</span>
+      <span class="hacker-icon">🔐</span>
+      <div class="logo-title">HackLab QUIZ</div>
+      <div class="logo-subtitle">Cybersecurity Assessment Platform</div>
+    </div>
+
+    <div class="quiz-meta">
+      <div class="meta-pill"><span>QUESTIONS: </span><span id="meta-count">0</span></div>
+      <div class="meta-pill"><span>TOPICS: </span><span>10</span></div>
+      <div class="meta-pill"><span>MODE: </span><span>MCQ</span></div>
+    </div>
+
+    <!-- Topic filter -->
+    <div class="topic-select-wrap">
+      <h3>Select Topics</h3>
+      <div class="topic-grid" id="topic-grid"></div>
+      <div class="topic-actions">
+        <button class="link-btn" id="btn-select-all">Select All</button>
+        <button class="link-btn" id="btn-clear-all">Clear All</button>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="settings-row">
+      <label class="toggle-opt on" id="toggle-shuffle-q">
+        <div class="toggle-dot"></div>
+        Shuffle Questions
+      </label>
+      <label class="toggle-opt on" id="toggle-shuffle-a">
+        <div class="toggle-dot"></div>
+        Shuffle Answers
+      </label>
+      <label class="toggle-opt" id="toggle-instant">
+        <div class="toggle-dot"></div>
+        Instant Submit
+      </label>
+    </div>
+
+    <button class="btn btn-primary btn-lg" id="btn-start">
+      ▶ &nbsp;LAUNCH QUIZ
+    </button>
+
+  </div>
+
+  <!-- ==================== QUIZ SCREEN ==================== -->
+  <div id="screen-quiz" class="screen">
+
+    <div class="quiz-header">
+      <div class="quiz-logo-sm">HackLab QUIZ</div>
+      <div class="score-live">
+        <div class="score-chip correct">✔ <span id="live-correct">0</span></div>
+        <div class="score-chip wrong">✘ <span id="live-wrong">0</span></div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progress-text">Question 1 of N</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="topic-badge" id="q-topic-badge">Topic</div>
+
+    <div class="question-card">
+      <div class="q-number" id="q-number">QUESTION 01</div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+
+    <div class="options-list" id="options-list"></div>
+
+    <div class="feedback-banner" id="feedback-banner">
+      <span class="feedback-icon" id="fb-icon"></span>
+      <div class="feedback-text" id="fb-text"></div>
+    </div>
+
+    <div class="quiz-nav">
+      <div class="nav-left">
+        <button class="btn btn-ghost" id="btn-prev">← PREV</button>
+      </div>
+      <div class="nav-right">
+        <button class="btn btn-secondary" id="btn-submit-answer" style="display:none">CHECK ✓</button>
+        <button class="btn btn-primary" id="btn-next">NEXT →</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== RESULTS SCREEN ==================== -->
+  <div id="screen-results" class="screen">
+
+    <div class="results-header">
+      <div class="results-title">MISSION COMPLETE</div>
+      <div id="rating-badge" class="rating-badge"></div>
+    </div>
+
+    <div class="score-circle-wrap">
+      <div class="score-circle" id="score-circle">
+        <div class="score-circle-inner">
+          <div class="score-pct" id="res-pct">0%</div>
+          <div class="score-label">Score</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card c-correct">
+        <div class="stat-num" id="res-correct">0</div>
+        <div class="stat-lbl">Correct</div>
+      </div>
+      <div class="stat-card c-wrong">
+        <div class="stat-num" id="res-wrong">0</div>
+        <div class="stat-lbl">Wrong</div>
+      </div>
+      <div class="stat-card c-total">
+        <div class="stat-num" id="res-total">0</div>
+        <div class="stat-lbl">Total</div>
+      </div>
+      <div class="stat-card c-score">
+        <div class="stat-num" id="res-score">0</div>
+        <div class="stat-lbl">Points</div>
+      </div>
+    </div>
+
+    <div class="results-actions">
+      <button class="btn btn-primary" id="btn-restart">↺ RESTART QUIZ</button>
+      <button class="btn btn-secondary" id="btn-review-mistakes">🔍 REVIEW MISTAKES</button>
+      <button class="btn btn-ghost" id="btn-back-home">⌂ HOME</button>
+    </div>
+
+  </div>
+
+  <!-- ==================== REVIEW SCREEN ==================== -->
+  <div id="screen-review" class="screen">
+
+    <div class="review-header">
+      <div>
+        <div class="review-title">🔍 REVIEW MISTAKES</div>
+        <div class="review-subtitle" id="review-subtitle"></div>
+      </div>
+      <button class="btn btn-ghost" id="btn-review-back">← BACK</button>
+    </div>
+
+    <div class="filter-bar" id="review-filter-bar"></div>
+
+    <div class="review-list" id="review-list"></div>
+
+    <button class="btn btn-ghost" id="btn-review-back-2">← BACK TO RESULTS</button>
+
+  </div>
+
+</div><!-- #app -->
+
+<script>
+/* ============================================================
+   HACKLAB QUIZ — JAVASCRIPT ENGINE
+   ============================================================ */
+
+/* ---- QUESTION DATABASE ---- */
+/* Topics:
+   1 = Intro / Offensive & Defensive / Pentest Stages
+   2 = Information Gathering / OSINT
+   3 = Network Scanning / Vulnerability Detection
+   4 = Network Hacking / WPA/WPA2
+   5 = Social Engineering
+   6 = Web Application Security
+   7 = Web App Attacks / Vulnerability Assessment Tools
+   8 = SQL Injection Vulnerabilities
+   9 = Advanced SQL Injection / Database Exploitation
+   10 = Cybersecurity Training Platforms & Tools
+*/
+
+const TOPICS = {
+  1: "Intro, Offensive & Defensive Security",
+  2: "Information Gathering & OSINT",
+  3: "Network Scanning & Vulnerability Detection",
+  4: "Network Hacking & WPA/WPA2",
+  5: "Social Engineering Techniques",
+  6: "Web Application Security",
+  7: "Web App Attacks & Assessment Tools",
+  8: "SQL Injection Vulnerabilities",
+  9: "Advanced SQL Injection & DB Exploitation",
+  10: "Cybersecurity Training Platforms & Tools"
+};
+
+const RAW_QUESTIONS = [
+
+/* ============================================================
+   TOPIC 1 — INTRO, OFFENSIVE & DEFENSIVE SECURITY
+   ============================================================ */
+{t:1,d:"easy",q:"What term describes an ethical hacker who has permission to test and secure systems?",
+ a:["White Hat","Black Hat","Gray Hat","Script Kiddie"],c:0},
+
+{t:1,d:"easy",q:"Which type of hacker operates with malicious intent and without permission?",
+ a:["White Hat","Gray Hat","Black Hat","Penetration Tester"],c:2},
+
+{t:1,d:"easy",q:"What is a 'vulnerability' in the context of cybersecurity?",
+ a:["A successful attack on a system","A weakness in a system that can be exploited","A type of encryption method","A network monitoring tool"],c:1},
+
+{t:1,d:"easy",q:"What is an 'exploit' in cybersecurity terminology?",
+ a:["A security policy document","A method used to take advantage of a vulnerability","A type of firewall rule","A network scanning technique"],c:1},
+
+{t:1,d:"easy",q:"Which security approach is described as 'proactive' and involves simulating hacker actions?",
+ a:["Defensive Security","Passive Security","Offensive Security","Compliance Security"],c:2},
+
+{t:1,d:"easy",q:"What does 'Blue Teaming' involve in defensive security?",
+ a:["Conducting penetration tests","Executing red team exercises","Infrastructure protection, threat monitoring, and incident investigation","Creating exploits for known vulnerabilities"],c:2},
+
+{t:1,d:"easy",q:"Which Linux distribution is specifically designed for security auditing and penetration testing?",
+ a:["Ubuntu","Fedora","Kali Linux","Debian Stable"],c:2},
+
+{t:1,d:"medium",q:"How many pre-installed security tools does Kali Linux come with approximately?",
+ a:["100+","200+","400+","600+"],c:3},
+
+{t:1,d:"easy",q:"Which organization maintains Kali Linux?",
+ a:["OWASP","Offensive Security","SANS Institute","CIS"],c:1},
+
+{t:1,d:"medium",q:"What is 'Red Teaming' in cybersecurity?",
+ a:["A quick single penetration test","A group of specialists conducting long-term attacks simulating real-world threats","A blue team defensive exercise","A type of network monitoring"],c:1},
+
+{t:1,d:"easy",q:"What is the FIRST stage of the penetration testing methodology?",
+ a:["Scanning","Gaining Access","Reconnaissance","Reporting"],c:2},
+
+{t:1,d:"easy",q:"In the penetration testing methodology, what is the LAST stage?",
+ a:["Covering Tracks","Maintaining Access","Exploitation","Reporting"],c:3},
+
+{t:1,d:"medium",q:"Which penetration testing stage involves 'identifying vulnerabilities and network mapping'?",
+ a:["Reconnaissance","Scanning","Gaining Access","Covering Tracks"],c:1},
+
+{t:1,d:"medium",q:"What is the goal of the 'Maintaining Access' stage in penetration testing?",
+ a:["Gather initial intelligence","Identify open ports","Ensure continued control over the compromised system","Document findings"],c:2},
+
+{t:1,d:"medium",q:"Which technique is associated with the 'Covering Tracks' stage?",
+ a:["Banner grabbing","Privilege escalation","Clearing logs","WHOIS lookup"],c:2},
+
+{t:1,d:"hard",q:"What Linux command is referenced in the lecture for creating a new empty file?",
+ a:["mkdir","nano","touch","create"],c:2},
+
+{t:1,d:"easy",q:"What command in Kali Linux displays the current directory?",
+ a:["cd","ls","pwd","dir"],c:2},
+
+{t:1,d:"easy",q:"Which keyboard shortcut opens a terminal in Kali Linux?",
+ a:["Ctrl+T","Ctrl+Alt+T","Alt+F2","Ctrl+Shift+X"],c:1},
+
+{t:1,d:"medium",q:"Which Kali Linux command searches the $PATH environment variable to find a program's full path?",
+ a:["find","locate","which","whereis"],c:2},
+
+{t:1,d:"medium",q:"What does the 'locate' command in Kali Linux use to find files quickly?",
+ a:["It scans the hard drive in real time","It uses its internal locate.db database","It queries DNS records","It uses nmap to map the filesystem"],c:1},
+
+{t:1,d:"easy",q:"In offensive security, what does 'Threat Hunting' refer to?",
+ a:["Protecting systems from external attacks","Actively searching for traces of hackers within a network","Running automatic vulnerability scanners","Building firewalls around sensitive systems"],c:1},
+
+{t:1,d:"easy",q:"What does the 'Incident Response' process involve?",
+ a:["Launching phishing attacks","Analyzing and mitigating attack consequences","Creating backdoor access","Network port scanning"],c:1},
+
+{t:1,d:"medium",q:"A Gray Hat hacker is best described as:",
+ a:["A fully authorized ethical hacker","A hacker working without permission but not necessarily with malicious intent","A highly malicious criminal hacker","A hacker who only tests mobile applications"],c:1},
+
+{t:1,d:"medium",q:"Which of the following is NOT a category of tools in Kali Linux?",
+ a:["Wireless Attacks","Exploitation Tools","Social Media Marketing","Password Attacks"],c:2},
+
+{t:1,d:"hard",q:"What Kali Linux command combination would redirect the output of 'ls' into a text file named ls-list.txt?",
+ a:["ls | ls-list.txt","ls >> ls-list.txt","ls > ls-list.txt","ls -o ls-list.txt"],c:2},
+
+{t:1,d:"easy",q:"An Intrusion Detection System (IDS) is an example of which type of security?",
+ a:["Offensive Security","Penetration Testing","Defensive Security","Social Engineering"],c:2},
+
+{t:1,d:"medium",q:"What is the primary goal of the 'Reconnaissance' stage in penetration testing?",
+ a:["Exploit vulnerabilities","Collect as much information as possible about the target","Document findings","Establish a backdoor"],c:1},
+
+/* ============================================================
+   TOPIC 2 — INFORMATION GATHERING & OSINT
+   ============================================================ */
+{t:2,d:"easy",q:"What does OSINT stand for?",
+ a:["Open Source Intelligence","Offensive Security Intelligence Network","Online System Intrusion Technique","Operational Security Information Tool"],c:0},
+
+{t:2,d:"easy",q:"Which of the following is a passive information gathering technique?",
+ a:["Port scanning with Nmap","Banner grabbing","WHOIS lookup","Sending probes to the target network"],c:2},
+
+{t:2,d:"easy",q:"What does WHOIS allow you to discover about a domain?",
+ a:["The source code of the website","Domain registration details","Active network connections","Login credentials of the administrator"],c:1},
+
+{t:2,d:"easy",q:"Which OSINT tool is described as a search engine for internet-connected devices?",
+ a:["Maltego","theHarvester","Shodan","SpiderFoot"],c:2},
+
+{t:2,d:"easy",q:"What is Maltego primarily used for in OSINT?",
+ a:["Port scanning","Gathering and visualizing personal/organizational data","Cracking passwords","Injecting SQL into databases"],c:1},
+
+{t:2,d:"medium",q:"What is 'Google Dorking'?",
+ a:["Using Google to spread malware","Using advanced Google search operators to find sensitive exposed information","A type of phishing attack via Gmail","A Google-based brute force technique"],c:1},
+
+{t:2,d:"medium",q:"Which Google Dorking operator searches for content within the body of web pages?",
+ a:["filetype:","intitle:","intext:","site:"],c:2},
+
+{t:2,d:"medium",q:"Which Google Dorking operator restricts search results to a specific website?",
+ a:["inurl:","link:","site:","intitle:"],c:2},
+
+{t:2,d:"easy",q:"What tool is used for automated OSINT collection from multiple public sources and can be launched with 'python3 sf.py'?",
+ a:["Maltego","RocketReach","SpiderFoot","theHarvester"],c:2},
+
+{t:2,d:"medium",q:"What is the primary purpose of theHarvester tool?",
+ a:["Scanning for open network ports","Gathering email addresses, subdomains, and other publicly available data","Cracking WPA handshakes","Injecting payloads into web applications"],c:1},
+
+{t:2,d:"easy",q:"What is the difference between active and passive reconnaissance?",
+ a:["Active uses OSINT; passive uses port scanning","Active sends probes to the target; passive does not interact directly with the target","Active is legal; passive is illegal","Active is slower; passive is faster"],c:1},
+
+{t:2,d:"medium",q:"Which DNS command-line tool shows the DNS resolution details and is commonly used in Linux for OSINT?",
+ a:["nslookup only","ping","dig","traceroute"],c:2},
+
+{t:2,d:"medium",q:"What does DNS stand for in the context of information gathering?",
+ a:["Dynamic Navigation System","Domain Name System","Data Network Scanner","Distributed Node Security"],c:1},
+
+{t:2,d:"hard",q:"Which Gobuster mode is used for subdomain brute-forcing?",
+ a:["dir","vhost","dns","file"],c:2},
+
+{t:2,d:"medium",q:"RocketReach is used in OSINT to gather information about:",
+ a:["Exposed network ports and services","Company employees including job titles, email addresses, and corporate affiliation","Open Wi-Fi networks in a geographic area","SQL database structures"],c:1},
+
+{t:2,d:"medium",q:"SSL certificate inspection during reconnaissance can reveal what useful information?",
+ a:["The database password","Additional subdomains and organizational details","The source code of the application","ARP table entries"],c:1},
+
+{t:2,d:"easy",q:"Social media scraping is useful to attackers because:",
+ a:["It provides direct shell access","It reveals employee information that can be used in spear phishing attacks","It downloads network traffic captures","It bypasses two-factor authentication"],c:1},
+
+{t:2,d:"medium",q:"What is the purpose of the 'filetype:' Google dorking operator?",
+ a:["Find files with a specific extension such as PDF or XLS","Search within a specific domain","Find pages that contain a keyword in their URL","Locate admin login panels"],c:0},
+
+{t:2,d:"hard",q:"Which technique involves searching job listings to identify the technologies used by an organization?",
+ a:["Badge cloning","Competitive intelligence via job postings","Watering hole attack","DNS zone transfer"],c:1},
+
+{t:2,d:"medium",q:"What command is used for DNS lookup in Kali Linux to find mail exchange (MX) records?",
+ a:["nmap --dns","dig <domain> mx","whois -mx","host -type=mx"],c:1},
+
+{t:2,d:"easy",q:"In information gathering, what is a 'subdomain brute force' attack?",
+ a:["Guessing passwords for admin panels","Trying many possible subdomain names against a target domain to discover valid ones","Sending thousands of login requests","Injecting commands into URL parameters"],c:1},
+
+{t:2,d:"hard",q:"The SecLists wordlist collection is hosted on which platform?",
+ a:["GitLab","Bitbucket","GitHub","SourceForge"],c:2},
+
+{t:2,d:"medium",q:"Which passive reconnaissance method involves listening to network traffic without sending probes?",
+ a:["Host enumeration","Packet inspection / eavesdropping","Service enumeration","Web page enumeration"],c:1},
+
+/* ============================================================
+   TOPIC 3 — NETWORK SCANNING & VULNERABILITY DETECTION
+   ============================================================ */
+{t:3,d:"easy",q:"What does Nmap stand for?",
+ a:["Network Mapper","Node Management and Port tool","Network Monitor and Analyzer Protocol","Network Metadata Analysis Probe"],c:0},
+
+{t:3,d:"easy",q:"Which Nmap flag performs a 'stealth' TCP SYN scan?",
+ a:["-sU","-sV","-sS","-sT"],c:2},
+
+{t:3,d:"easy",q:"Which Nmap flag detects service versions running on open ports?",
+ a:["-sV","-sS","-O","-Pn"],c:0},
+
+{t:3,d:"easy",q:"Which Nmap flag is used for OS detection?",
+ a:["-sV","-O","-A","-T4"],c:1},
+
+{t:3,d:"medium",q:"What does the Nmap flag '-Pn' do?",
+ a:["Performs a ping scan only","Skips host discovery and scans even if the host doesn't respond to pings","Sends UDP packets only","Enables IPv6 scanning"],c:1},
+
+{t:3,d:"medium",q:"Which Nmap scan type is described as the 'Aggressive Scan' that combines OS detection, version detection, script scanning, and traceroute?",
+ a:["-sS -sV","nmap -A","nmap -sU","nmap -f"],c:1},
+
+{t:3,d:"easy",q:"What is Zenmap?",
+ a:["A vulnerability scanner","The graphical user interface (GUI) for Nmap","A wireless hacking tool","A web application firewall"],c:1},
+
+{t:3,d:"easy",q:"Masscan is primarily known for:",
+ a:["Being a slower but more accurate scanner","Being the fastest port scanner, capable of scanning the entire Internet","Decrypting WPA2 handshakes","Brute-forcing web login pages"],c:1},
+
+{t:3,d:"medium",q:"What is the TCP 3-way handshake sequence?",
+ a:["SYN, ACK, FIN","SYN, SYN-ACK, ACK","ACK, SYN, RST","SYN, RST, ACK"],c:1},
+
+{t:3,d:"medium",q:"What does the Nmap '-f' flag do to help bypass firewalls?",
+ a:["Uses fragmented packets to evade detection","Forces scanning through a proxy","Sets the scan speed to maximum","Scans only fragile services"],c:0},
+
+{t:3,d:"medium",q:"Which Nmap technique uses a 'zombie host' to relay the scan, hiding the attacker's real IP?",
+ a:["Decoy scanning (-D)","Idle scan (-sI)","Fragment scan (-f)","IPv6 scan (-6)"],c:1},
+
+{t:3,d:"medium",q:"What is 'banner grabbing' in network scanning?",
+ a:["Capturing WPA handshake packets","Reading the service identification information returned by an open port","Intercepting HTTP cookies","Performing a man-in-the-middle attack"],c:1},
+
+{t:3,d:"hard",q:"Which Nmap NSE script category checks for known CVE-based vulnerabilities?",
+ a:["Auth","Broadcast","Vuln","Exploit"],c:2},
+
+{t:3,d:"medium",q:"What port number is traditionally associated with SSH?",
+ a:["23","21","22","25"],c:2},
+
+{t:3,d:"medium",q:"What port is commonly used by HTTP?",
+ a:["443","8080","21","80"],c:3},
+
+{t:3,d:"medium",q:"What port is commonly used by HTTPS?",
+ a:["80","8443","443","21"],c:2},
+
+{t:3,d:"medium",q:"What does the Nmap option '-D RND:10' do?",
+ a:["Delays scan by 10 seconds","Uses 10 random decoy IP addresses to confuse IDS","Sends 10 packets per second","Randomizes the destination port 10 times"],c:1},
+
+{t:3,d:"easy",q:"What type of scan does UDP scanning perform?",
+ a:["Scans TCP ports","Scans User Datagram Protocol ports, useful for DNS (53) and SNMP (161)","Scans wireless spectrum","Scans encrypted HTTPS traffic"],c:1},
+
+{t:3,d:"medium",q:"Which vulnerability scanner, mentioned in the lecture, confirms known security flaws in outdated services?",
+ a:["Masscan","Wireshark","Nessus","Netdiscover"],c:2},
+
+{t:3,d:"hard",q:"When using Nmap to save scan results in XML format, which flag is used?",
+ a:["-oN","-oX","-oG","-oA"],c:1},
+
+{t:3,d:"medium",q:"Firewalls often block scans from low-numbered ports. Which source port can be spoofed to look like legitimate DNS traffic?",
+ a:["Port 80","Port 443","Port 53","Port 8080"],c:2},
+
+{t:3,d:"hard",q:"What advantage does IPv6 scanning offer during evasion according to the lecture?",
+ a:["IPv6 is faster than IPv4","Many firewalls focus on IPv4 filtering and may ignore IPv6 traffic","IPv6 packets cannot be logged","IPv6 automatically encrypts the scan"],c:1},
+
+{t:3,d:"medium",q:"What is the difference between TCP and UDP?",
+ a:["TCP is faster and unreliable; UDP is slower and reliable","TCP is reliable and ensures data delivery; UDP is fast but does not guarantee delivery","TCP is used only for web traffic; UDP is used only for DNS","There is no practical difference"],c:1},
+
+/* ============================================================
+   TOPIC 4 — NETWORK HACKING & WPA/WPA2
+   ============================================================ */
+{t:4,d:"easy",q:"What is a key hardware requirement for wireless hacking besides an access point?",
+ a:["A high-speed CPU","A wireless adapter supporting packet injection and monitor mode","A dedicated GPU","A wired network interface"],c:1},
+
+{t:4,d:"easy",q:"Which tool suite is commonly used for WPA/WPA2 cracking in the lecture?",
+ a:["Metasploit","Aircrack-ng","Nessus","Wireshark"],c:1},
+
+{t:4,d:"easy",q:"What is the purpose of 'airodump-ng' in wireless hacking?",
+ a:["Crack WPA passwords directly","Capture wireless packets and display information about nearby networks","Inject deauthentication frames","Perform dictionary attacks"],c:1},
+
+{t:4,d:"medium",q:"What is the purpose of a 'deauthentication attack' against WPA2?",
+ a:["Permanently block clients from the network","Force clients to reconnect so their handshake can be captured","Decrypt WPA2 traffic directly","Bypass the WPA2 authentication server"],c:1},
+
+{t:4,d:"easy",q:"Which tool sends deauthentication packets in wireless attacks?",
+ a:["aircrack-ng","airodump-ng","aireplay-ng","airmon-ng"],c:2},
+
+{t:4,d:"medium",q:"What does '-0' (zero) parameter mean in aireplay-ng?",
+ a:["Use channel zero","Deauthentication attack mode","Send zero packets","Use OPN encryption"],c:1},
+
+{t:4,d:"medium",q:"What is a WPA/WPA2 'handshake' in the context of cracking?",
+ a:["The initial connection between attacker and victim","The authentication exchange between a client and access point that can be captured for offline cracking","A successful brute-force result","A WEP initialization vector"],c:1},
+
+{t:4,d:"easy",q:"What wordlist file is referenced in the lecture for WPA2 password cracking?",
+ a:["passwords.txt","common-words.txt","rockyou-top100000.txt","wpa-list.txt"],c:2},
+
+{t:4,d:"medium",q:"In WEP cracking, what are 'Initialization Vectors' (IVs) and why are they important?",
+ a:["They are the SSID names of wireless networks","Cryptographic values collected during WEP attacks; enough IVs allow statistical recovery of the WEP key","They are handshake packets used in WPA2","They represent MAC addresses of connected clients"],c:1},
+
+{t:4,d:"hard",q:"Approximately how many IVs were needed in the lecture example to successfully crack the WEP key?",
+ a:["About 1,000","About 5,000","About 60,000+","About 1,000,000"],c:2},
+
+{t:4,d:"medium",q:"How is a WEP key typically displayed after successful cracking, unlike WPA passwords?",
+ a:["As a plain English word","In hexadecimal format","As a Base64 encoded string","In binary notation"],c:1},
+
+{t:4,d:"easy",q:"What is the difference between WEP and WPA2 in terms of security strength?",
+ a:["WEP is stronger than WPA2","WPA2 is significantly stronger than WEP; WEP is considered broken","They offer equal security","WEP uses longer keys than WPA2"],c:1},
+
+{t:4,d:"medium",q:"What command puts a wireless interface into monitor mode in Kali Linux?",
+ a:["ifconfig wlan0 monitor","airmon-ng start wlan0","iwconfig wlan0 mode monitor","netctl start wlan0mon"],c:1},
+
+{t:4,d:"easy",q:"What does OPN refer to when discussing wireless networks?",
+ a:["Open network (no encryption)","Optimal Packet Network","Operating Protocol Node","Online Privacy Network"],c:0},
+
+{t:4,d:"hard",q:"In the lecture's WPA2 cracking example, what was the recovered password for 'wifi-mobile'?",
+ a:["password123","letmein","starwars1","admin2024"],c:2},
+
+{t:4,d:"medium",q:"Wireshark is used in the lecture to capture and analyze network traffic. Which HTTP method reveals login credentials in POST requests?",
+ a:["GET","DELETE","POST","PUT"],c:2},
+
+{t:4,d:"medium",q:"What Wireshark filter is used to show only HTTP POST requests?",
+ a:["http.method == POST","tcp.flags == 0x02","http.request.method == \"POST\"","http.post.request == true"],c:2},
+
+{t:4,d:"hard",q:"Why is HTTP (not HTTPS) traffic dangerous on OPN networks?",
+ a:["HTTP uses stronger encryption","Traffic including session cookies is transmitted in plain text and can be intercepted","HTTP is slower and more detectable","HTTP uses a different port that is easier to block"],c:1},
+
+{t:4,d:"medium",q:"What is a PHPSESSID and why is it a security risk on unencrypted networks?",
+ a:["A PHP configuration file; it can corrupt server settings","A session identifier used by PHP applications; if captured, an attacker can impersonate the user","A database password stored in cookies","A server-side encryption key"],c:1},
+
+{t:4,d:"easy",q:"What is the BSSID in wireless networking?",
+ a:["The network password","The MAC address of the access point","The SSID (network name)","The channel frequency"],c:1},
+
+/* ============================================================
+   TOPIC 5 — SOCIAL ENGINEERING
+   ============================================================ */
+{t:5,d:"easy",q:"What is 'phishing' in social engineering?",
+ a:["A network port scanning technique","A deceptive attack typically via email that tricks users into revealing credentials or clicking malicious links","A SQL injection variant","A type of brute force attack"],c:1},
+
+{t:5,d:"medium",q:"What is 'spear phishing' compared to regular phishing?",
+ a:["Spear phishing uses SMS; regular phishing uses email","Spear phishing is a targeted attack against specific individuals or organizations; regular phishing is broad","Spear phishing targets executives only","Spear phishing is automated; regular phishing is manual"],c:1},
+
+{t:5,d:"medium",q:"What is 'whaling' in social engineering?",
+ a:["Phishing attacks targeting large corporate databases","Targeted spear phishing attacks specifically aimed at high-profile targets like executives (CEOs, CFOs)","An attack on maritime infrastructure","A type of USB-based attack"],c:1},
+
+{t:5,d:"easy",q:"What is 'vishing'?",
+ a:["Video-based phishing","Voice phishing—a social engineering attack carried out over a phone call","Visual scripting attacks","VPN-based intrusion"],c:1},
+
+{t:5,d:"easy",q:"What is SMS phishing commonly known as?",
+ a:["Vishing","Whaling","Smishing","Spearing"],c:2},
+
+{t:5,d:"medium",q:"What physical social engineering attack involves leaving USB sticks in locations hoping targets will plug them in?",
+ a:["Badge Cloning","Shoulder Surfing","USB Drop Key Attack","Tailgating"],c:2},
+
+{t:5,d:"easy",q:"What is 'tailgating' as a physical security attack?",
+ a:["Following a car in a highway to gather information","An unauthorized person gaining entry to a restricted area by following an authorized person, without that person's consent","Intercepting wireless signals from a vehicle","A network packet following/sniffing technique"],c:1},
+
+{t:5,d:"easy",q:"What is 'dumpster diving' in social engineering?",
+ a:["Recovering deleted files from cloud storage","Scavenging through physical garbage for sensitive documents or media","Accessing dark web forums","Exfiltrating data via HTTP"],c:1},
+
+{t:5,d:"easy",q:"What is 'shoulder surfing'?",
+ a:["Intercepting network traffic","Obtaining information by physically observing what someone types or views on a device","Cloning an RFID badge","Exploiting SSL vulnerabilities"],c:1},
+
+{t:5,d:"medium",q:"What defense can defeat both tailgating and piggybacking attacks?",
+ a:["Biometric scanning","Access control vestibules (mantrap)","Encryption","Network firewalls"],c:1},
+
+{t:5,d:"easy",q:"Which social engineering tool, developed by David Kennedy, can launch phishing attacks and integrates with Metasploit?",
+ a:["BeEF","Maltego","Social-Engineer Toolkit (SET)","Airgeddon"],c:2},
+
+{t:5,d:"medium",q:"What does BeEF stand for in social engineering tools?",
+ a:["Bluetooth Exploitation and Enumeration Framework","Browser Exploitation Framework","Backend Exploitation and Evasion Framework","Broken Endpoint Exploitation Filter"],c:1},
+
+{t:5,d:"medium",q:"BeEF primarily exploits which type of web vulnerability?",
+ a:["SQL Injection","Cross-Site Scripting (XSS)","Path Traversal","XML External Entity"],c:1},
+
+{t:5,d:"medium",q:"Which social engineering 'method of influence' involves creating a sense of time pressure to force quick decisions?",
+ a:["Authority","Likeness","Social Proof","Scarcity and Urgency"],c:3},
+
+{t:5,d:"medium",q:"Which social engineering method exploits the human tendency to comply with someone in a position of power?",
+ a:["Social Proof","Likeness","Authority","Fear"],c:2},
+
+{t:5,d:"easy",q:"What is 'pretexting' in social engineering?",
+ a:["Encrypting communications before sending","Creating a fabricated scenario (pretext) to manipulate a victim into providing information","Scanning for open ports","Exploiting SQL injection"],c:1},
+
+{t:5,d:"medium",q:"What is a 'watering hole attack'?",
+ a:["Flooding a target server with requests","Compromising websites that target victims are known to visit, then redirecting them to malicious content","Attacking water utility SCADA systems","Intercepting traffic at network watering points"],c:1},
+
+{t:5,d:"hard",q:"Which OSINT tool from the lecture is used to gather personal data and can create a visual relationship map of targets?",
+ a:["SpiderFoot","Shodan","Maltego","RocketReach"],c:2},
+
+{t:5,d:"medium",q:"What is 'badge cloning' as a physical attack?",
+ a:["Creating a digital copy of a user's face for biometric bypass","Duplicating RFID/NFC access badges to gain unauthorized physical entry","Impersonating an employee via email","Stealing login credentials from a badge-protected system"],c:1},
+
+{t:5,d:"easy",q:"Which social engineering motivation technique involves using someone's desire to be liked and trusted?",
+ a:["Fear","Authority","Likeness","Scarcity"],c:2},
+
+/* ============================================================
+   TOPIC 6 — WEB APPLICATION SECURITY
+   ============================================================ */
+{t:6,d:"easy",q:"What does CIA stand for in information security?",
+ a:["Cyber Intelligence Agency","Confidentiality, Integrity, Availability","Critical Infrastructure Assessment","Command Injection Attacks"],c:1},
+
+{t:6,d:"easy",q:"What does 'Confidentiality' mean in the CIA Triad?",
+ a:["Data is always accessible","Information is not disclosed to unauthorized individuals","Data changes are tracked","Systems are protected against denial of service"],c:1},
+
+{t:6,d:"easy",q:"What does 'Availability' mean in the CIA Triad?",
+ a:["Only authorized users can modify data","Data cannot be altered in transit","Authorized users can access permitted resources at all times","All data must be encrypted"],c:2},
+
+{t:6,d:"easy",q:"What is CVSS?",
+ a:["Cross-Vulnerability Scanning System","Common Vulnerability Scoring System — a method to score vulnerability severity numerically","Certified Vulnerability Security Standard","Central VPN Security Service"],c:1},
+
+{t:6,d:"easy",q:"What is the OWASP Top 10?",
+ a:["A list of the ten most popular web frameworks","A standard awareness document representing the most critical security risks to web applications","The top ten cybersecurity certifications","A list of ten essential Kali Linux tools"],c:1},
+
+{t:6,d:"easy",q:"Burp Suite is primarily described as:",
+ a:["A port scanner","A wireless packet analyzer","A proxy-based tool for evaluating web application security","A password cracking tool"],c:2},
+
+{t:6,d:"medium",q:"What is a 'server-side vulnerability' in web applications?",
+ a:["A vulnerability where the final payload executes in the user's browser","A vulnerability where the final payload executes on the server software","A vulnerability affecting network hardware","A vulnerability in SSL certificates"],c:1},
+
+{t:6,d:"medium",q:"Which of the following is a client-side vulnerability?",
+ a:["SQL Injection","Local File Inclusion","Server-Side Request Forgery","Cross-Site Scripting (XSS)"],c:3},
+
+{t:6,d:"medium",q:"What is 'command injection'?",
+ a:["Injecting SQL into a database query","Executing arbitrary operating system commands through a vulnerable application","Injecting JavaScript into HTML","Uploading a malicious PDF file"],c:1},
+
+{t:6,d:"medium",q:"What is a 'path traversal' vulnerability?",
+ a:["A vulnerability allowing attackers to change the server's root path","A vulnerability where an attacker can access files and directories outside the intended web root","An attack that manipulates URL redirects","A vulnerability in the HTTP path header"],c:1},
+
+{t:6,d:"easy",q:"What is Cross-Site Scripting (XSS)?",
+ a:["Injecting SQL commands into form fields","A vulnerability that allows injection of HTML/script code that renders in a victim's browser","Intercepting cross-server traffic","Forging server-side requests"],c:1},
+
+{t:6,d:"medium",q:"What is a 'session fixation attack'?",
+ a:["An attack that extends a session's timeout","An attack that sets a victim's session identifier to one the attacker already knows","A brute force attack on session tokens","An attack that deletes session cookies"],c:1},
+
+{t:6,d:"medium",q:"What is an 'XML External Entity (XXE)' attack?",
+ a:["An SQL injection variant targeting XML databases","An attack exploiting weakly configured XML parsers to read files, perform SSRF, or cause DoS","A cross-site scripting attack in XML pages","An XML-based denial of service flood"],c:1},
+
+{t:6,d:"medium",q:"What are JWT tokens and what format do they use?",
+ a:["Java Web Tools — format: JSON objects","JSON Web Tokens for client authentication — format: base64.base64.base64","JavaScript Widget Templates — format: XML","Java Wrapper Types — format: hexadecimal"],c:1},
+
+{t:6,d:"easy",q:"What does a Web Application Firewall (WAF) do?",
+ a:["Encrypts all web traffic","Filters, monitors, and blocks malicious HTTP traffic to and from a web service","Scans for open network ports","Replaces HTTPS certificates"],c:1},
+
+{t:6,d:"medium",q:"What is a 'brute force attack' on a web application?",
+ a:["Injecting malformed SQL","Using trial-and-error to guess login credentials, keys, or hidden pages","Exploiting XSS vulnerabilities","Intercepting HTTPS traffic"],c:1},
+
+{t:6,d:"easy",q:"What is DVWA?",
+ a:["Dynamic Vulnerability Web Analyzer","Damn Vulnerable Web Application — a deliberately vulnerable web app for practice","Defense Vector Web Assessment tool","Database Vulnerability Web Audit"],c:1},
+
+{t:6,d:"easy",q:"WebGoat is best described as:",
+ a:["A production-grade web application","A deliberately insecure web application for security training","A web scraping tool","A web application firewall"],c:1},
+
+{t:6,d:"medium",q:"What does 'Local File Inclusion (LFI)' allow an attacker to do?",
+ a:["Upload arbitrary files to the server","Read files from the server's filesystem that were not intended to be accessible","Execute arbitrary SQL queries","Perform CSRF attacks"],c:1},
+
+{t:6,d:"hard",q:"What is 'Integrity' in the CIA Triad?",
+ a:["The property of being accessible to authorized users at all times","The property of accuracy and completeness — data must not be changed by unauthorized entities","The property of keeping information secret","The property of detecting intrusions"],c:1},
+
+/* ============================================================
+   TOPIC 7 — WEB APP ATTACKS & VULNERABILITY ASSESSMENT TOOLS
+   ============================================================ */
+{t:7,d:"easy",q:"What does SAST stand for?",
+ a:["Static Application Security Testing","Standard Application Security Toolkit","System Administration Security Tool","Secure Application Scan Testing"],c:0},
+
+{t:7,d:"easy",q:"What does DAST stand for?",
+ a:["Dynamic Application Security Testing","Distributed Application Security Toolkit","Database Application Scan Testing","Defensive Application Security Triage"],c:0},
+
+{t:7,d:"medium",q:"Which testing methodology examines source code to find flaws — SAST or DAST?",
+ a:["DAST (black box)","SAST (white box)","Both equally","Neither; they use fuzzing only"],c:1},
+
+{t:7,d:"medium",q:"DAST is described as which type of testing?",
+ a:["White box testing","Gray box testing","Black box testing — examining a running application","Source code review"],c:2},
+
+{t:7,d:"easy",q:"What tool is OWASP ZAP?",
+ a:["A wireless cracking tool","A free and open-source DAST tool for finding web application vulnerabilities","A SAST tool for scanning source code","A network packet analyzer"],c:1},
+
+{t:7,d:"easy",q:"What is Nikto primarily used for?",
+ a:["Password brute forcing","A web server and CGI scanner for fast security checks","SQL injection exploitation","Network port scanning"],c:1},
+
+{t:7,d:"easy",q:"Which tool is used for SQL injection exploitation automation?",
+ a:["dirsearch","Hydra","sqlmap","Graudit"],c:2},
+
+{t:7,d:"medium",q:"Which tool is used to brute-force hidden directories and files on a web server?",
+ a:["sqlmap","Maltego","dirsearch / dirb / ffuf","Aircrack-ng"],c:2},
+
+{t:7,d:"medium",q:"What tool is used to brute-force web login forms?",
+ a:["Nessus","OpenVAS","Hydra","SpiderFoot"],c:2},
+
+{t:7,d:"easy",q:"SonarQube is an example of which type of testing tool?",
+ a:["DAST","Fuzzer","SAST","Wireless scanner"],c:2},
+
+{t:7,d:"medium",q:"Graudit is a SAST tool. What makes it unique?",
+ a:["It requires a paid license","It is open source and supports multiple languages using signature-based detection","It only supports Java","It requires a running application to test"],c:1},
+
+{t:7,d:"easy",q:"OpenVAS by Greenbone is used for:",
+ a:["Wireless packet injection","Dynamic vulnerability scanning of running applications and infrastructure","Static code analysis","Brute-forcing SSH credentials"],c:1},
+
+{t:7,d:"medium",q:"What CMS-specific tool is used to scan WordPress sites for vulnerabilities?",
+ a:["joomscan","wpscan","drupalgeddon2","nikto"],c:1},
+
+{t:7,d:"medium",q:"What tool is used specifically for exploiting Server-Side Template Injection (SSTI)?",
+ a:["sqlmap","BeEF","tplmap","sublist3r"],c:2},
+
+{t:7,d:"hard",q:"Which tool combination is recommended for brute-forcing subdomains?",
+ a:["Nmap + Masscan","sublist3r + subfuzz","Hydra + Burp Suite","dirsearch + ffuf"],c:1},
+
+{t:7,d:"medium",q:"What is the purpose of Burp Suite's 'Intruder' module?",
+ a:["Automatically patch vulnerabilities","Brute-force web forms and perform automated parameter fuzzing","Map the application structure","Intercept and modify HTTP requests manually"],c:1},
+
+{t:7,d:"easy",q:"PortSwigger maintains which popular web security training and testing tool?",
+ a:["OWASP ZAP","Burp Suite","Nikto","OpenVAS"],c:1},
+
+{t:7,d:"medium",q:"What Metasploitable is commonly used for in security training?",
+ a:["Penetration testing production servers","A deliberately vulnerable virtual machine used as a target for practice","A tool for cracking wireless passwords","A web application firewall"],c:1},
+
+{t:7,d:"medium",q:"What does 'ffuf' stand for and what is its primary use?",
+ a:["Fast Forensic URL Finder — for subdomain scanning","Fuzz Faster U Fool — a fast web fuzzer for directory/parameter discovery","Firefox Fuzzing Utility Framework — for browser exploitation","File and Folder URL Finder — for sitemap generation"],c:1},
+
+/* ============================================================
+   TOPIC 8 — SQL INJECTION VULNERABILITIES
+   ============================================================ */
+{t:8,d:"easy",q:"What does SQL stand for?",
+ a:["System Query Language","Structured Query Language","Standard Query Logic","Secure Query Language"],c:1},
+
+{t:8,d:"easy",q:"What is SQL Injection (SQLi)?",
+ a:["Encrypting SQL database connections","Inserting malicious SQL code into input fields to manipulate database queries","A type of network port scan","A brute force attack on database passwords"],c:1},
+
+{t:8,d:"easy",q:"Which SQL command is used to retrieve data from a database?",
+ a:["INSERT","UPDATE","SELECT","DELETE"],c:2},
+
+{t:8,d:"easy",q:"Which SQL command adds new rows to a table?",
+ a:["SELECT","CREATE","INSERT","UPDATE"],c:2},
+
+{t:8,d:"easy",q:"Which SQL command removes rows from a table based on a condition?",
+ a:["DROP","DELETE","TRUNCATE","REMOVE"],c:1},
+
+{t:8,d:"medium",q:"What is the primary reason SQL injection occurs?",
+ a:["The database server is outdated","User input is not properly sanitized or validated before being passed to SQL queries","The web server is misconfigured","The database uses weak encryption"],c:1},
+
+{t:8,d:"medium",q:"What does DDL stand for in SQL command types?",
+ a:["Data Declaration Language","Dynamic Data Language","Data Definition Language","Distributed Data Logic"],c:2},
+
+{t:8,d:"medium",q:"What does DML stand for in SQL command types?",
+ a:["Data Modification Language","Dynamic Markup Language","Data Manipulation Language","Database Management Layer"],c:2},
+
+{t:8,d:"medium",q:"Which SQL command category includes GRANT and REVOKE?",
+ a:["DQL","DDL","DCL","TCL"],c:2},
+
+{t:8,d:"easy",q:"What SQL operation does TCL's ROLLBACK perform?",
+ a:["Creates a new table","Undoes uncommitted changes to the database","Commits all current transactions","Drops a table permanently"],c:1},
+
+{t:8,d:"medium",q:"According to the lecture, when were SQL injection attacks first noticed by computer experts?",
+ a:["Around 1985","Around 1998","Around 2005","Around 2010"],c:1},
+
+{t:8,d:"hard",q:"In 2009, SQL injection was used to compromise credentials at which organization?",
+ a:["Google","Microsoft","NASA's Instrument Systems and Technology Division","The Pentagon"],c:2},
+
+{t:8,d:"medium",q:"What is a key danger of SQL injection beyond data exposure?",
+ a:["Making websites load slowly","Dropping tables / destroying data and gaining shell access","Changing website colors","Slowing down DNS resolution"],c:1},
+
+{t:8,d:"medium",q:"Which SQL injection discovery method uses Burp Suite or OWASP ZAP to intercept POST requests?",
+ a:["Active network scanning","Passive DNS monitoring","Manual or automated testing of injection points in form data","Google Dorking"],c:2},
+
+{t:8,d:"easy",q:"What does SQL injection allow an attacker to do to authentication?",
+ a:["Only read user passwords","Bypass login entirely without knowing valid credentials","Add new admin accounts only","Encrypt the login page"],c:1},
+
+{t:8,d:"hard",q:"In a relational database, what links data across multiple tables?",
+ a:["Foreign keys and primary keys","Indexes and views","Stored procedures","Transaction control language"],c:0},
+
+{t:8,d:"medium",q:"What is the role of 'indexes' in a relational database?",
+ a:["Store user passwords securely","Speed up data retrieval by reducing disk accesses needed for a query","Define access control rules","Roll back failed transactions"],c:1},
+
+{t:8,d:"medium",q:"What is a SQL 'view' in the context of database security?",
+ a:["A visual graph of table relationships","A virtual table based on a SQL query that simplifies complex queries and improves security by restricting access","A type of stored procedure","A database backup snapshot"],c:1},
+
+{t:8,d:"easy",q:"SQL injection was originally standardized by IBM. Which scientists are credited with developing SQL?",
+ a:["Larry Page and Sergey Brin","Donald Chamberlin and Raymond Boyce","Linus Torvalds and Richard Stallman","Tim Berners-Lee and Vint Cerf"],c:1},
+
+{t:8,d:"medium",q:"A web application uses 'SELECT * FROM users WHERE id=USER_INPUT'. If an attacker inputs '1 OR 1=1', what happens?",
+ a:["Nothing, the query is safely escaped","The query returns all rows in the users table because 1=1 is always true","The database crashes","Only user with id=1 is returned"],c:1},
+
+/* ============================================================
+   TOPIC 9 — ADVANCED SQL INJECTION & DB EXPLOITATION
+   ============================================================ */
+{t:9,d:"easy",q:"What SQL query retrieves the current database version?",
+ a:["SELECT current_db()","SELECT @@version","SELECT db_version()","SELECT version_info()"],c:1},
+
+{t:9,d:"easy",q:"What SQL query retrieves the current database name?",
+ a:["SELECT current_database()","SELECT db_name()","SELECT database()","SELECT schema()"],c:2},
+
+{t:9,d:"medium",q:"Which SQL schema table lists all tables in all databases in MySQL?",
+ a:["information_schema.columns","information_schema.schemata","information_schema.tables","sys.all_tables"],c:2},
+
+{t:9,d:"medium",q:"What is the 'information_schema.schemata' table used for in SQL injection?",
+ a:["List all databases on the server","List all tables in a specific database","Extract column names from a target table","Check user privileges"],c:0},
+
+{t:9,d:"medium",q:"What is a UNION-based SQL injection used for?",
+ a:["Crashing the database server","Combining the results of the injected query with the original query to extract additional data","Bypassing authentication only","Deleting all database records"],c:1},
+
+{t:9,d:"hard",q:"What is 'blind SQL injection'?",
+ a:["SQL injection that targets blind users","SQL injection where results are not directly displayed but are inferred from application behavior or timing","SQL injection that works only via POST requests","SQL injection that only modifies data without reading it"],c:1},
+
+{t:9,d:"medium",q:"Which tools are mentioned for cracking extracted password hashes from databases?",
+ a:["Nmap and Masscan","John the Ripper and Hashcat","Aircrack-ng and Hydra","Metasploit and SQLmap"],c:1},
+
+{t:9,d:"hard",q:"What is the core principle when reviewing code for SQL injection vulnerabilities?",
+ a:["Look for any use of a database connection","Find user-controlled data reaching a SQL query without parameterization","Check all third-party libraries","Review only POST request handlers"],c:1},
+
+{t:9,d:"medium",q:"Which HTTP headers are highlighted in the lecture as frequently overlooked SQL injection input sources?",
+ a:["Content-Type and Accept","User-Agent and X-Forwarded-For","Authorization and Cookie","Cache-Control and Pragma"],c:1},
+
+{t:9,d:"hard",q:"What is the SQL injection severity classification for an UNAUTHENTICATED endpoint that touches credentials or auth logic?",
+ a:["LOW","MEDIUM","HIGH","CRITICAL"],c:3},
+
+{t:9,d:"hard",q:"What is the SQL injection severity for an authenticated endpoint touching sensitive financial data like payment records?",
+ a:["CRITICAL","HIGH","MEDIUM","LOW"],c:1},
+
+{t:9,d:"medium",q:"What is parameterized queries' primary defense mechanism against SQL injection?",
+ a:["Encrypting all database connections","Sending query structure and data values to the database separately, preventing values from being interpreted as SQL commands","Validating input length only","Using stored procedures for all queries"],c:1},
+
+{t:9,d:"medium",q:"What defense is used for SQL query elements that CANNOT be parameterized, such as column names or ORDER BY direction?",
+ a:["Input length validation","Regular expression filtering","Whitelist validation — only pre-defined safe values are accepted","URL encoding"],c:2},
+
+{t:9,d:"hard",q:"What is the 'least privilege' principle in database security and how does it limit SQL injection impact?",
+ a:["Granting the database user all permissions to ensure full functionality","Restricting the database account to only necessary permissions, limiting what an attacker can do even after successful injection","Using only read-only database connections for all operations","Encrypting all columns in the database"],c:1},
+
+{t:9,d:"medium",q:"What is a Web Application Firewall (WAF) in the context of SQL injection defense?",
+ a:["A replacement for parameterized queries","A detection and delay layer that inspects HTTP requests for known SQLi patterns, but can be bypassed by skilled attackers","A database-level filter","A source code scanner"],c:1},
+
+{t:9,d:"hard",q:"The X-Forwarded-For header is used to communicate what to the application?",
+ a:["The browser version","The user's preferred language","The original client IP address when behind a load balancer or proxy","The SSL certificate fingerprint"],c:2},
+
+{t:9,d:"medium",q:"Why is the User-Agent header a high-risk SQL injection target?",
+ a:["It is rarely collected by applications","It is almost universally logged in databases, making it a frequently injectable field found in penetration tests","It cannot be modified by attackers","It contains only browser version information"],c:1},
+
+{t:9,d:"hard",q:"In the lecture's impact model, what severity is assigned to an admin-only route protected by @admin_required, touching the orders table?",
+ a:["CRITICAL","HIGH","MEDIUM","LOW"],c:3},
+
+{t:9,d:"medium",q:"What is a 'centralized query layer' in SQL injection defense?",
+ a:["A database hosted in a central data center","A single query module enforcing parameterization for all developers, making safe queries the only path","A WAF rule set applied centrally","A VPN connecting all database servers"],c:1},
+
+{t:9,d:"hard",q:"What does the LIMIT/OFFSET attack vector exploit in SQL injection?",
+ a:["These values can be parameterized, so they are safe","Since LIMIT/OFFSET cannot be parameterized, a whitelist must be enforced; without it, they can be used for boolean-based blind injection","LIMIT and OFFSET are always ignored by databases","These parameters are never user-controlled"],c:1},
+
+{t:9,d:"medium",q:"What type of SQL injection would be found in the /search route that touches only a products table with public data?",
+ a:["CRITICAL severity","HIGH severity","MEDIUM severity","LOW severity"],c:2},
+
+{t:9,d:"medium",q:"Which platform is referenced in the lecture for practicing SQL injection through a 'from sqli to shell' exercise?",
+ a:["HackTheBox","TryHackMe","pentesterlab.com","WebGoat"],c:2},
+
+/* ============================================================
+   TOPIC 10 — CYBERSECURITY TRAINING PLATFORMS & TOOLS
+   ============================================================ */
+{t:10,d:"easy",q:"What is Hack The Box (HTB)?",
+ a:["A physical cybersecurity lab at a university","An online cybersecurity training platform with machines, challenges, and pro labs","A SQL injection testing tool","A wireless packet analyzer"],c:1},
+
+{t:10,d:"easy",q:"What is TryHackMe known for in cybersecurity training?",
+ a:["Providing static study guides only","Online learning platform with guided rooms, King of the Hill competitions, and CTF challenges","A premium paid-only penetration testing framework","A hardware hacking toolkit"},c:1},
+
+{t:10,d:"easy",q:"What does CTF stand for in the cybersecurity training context?",
+ a:["Certified Testing Framework","Capture The Flag — a competitive cybersecurity challenge","Central Training Facility","Cryptographic Token Forgery"],c:1},
+
+{t:10,d:"medium",q:"What is CTFTime.org used for?",
+ a:["A leaderboard for Hack The Box","A list of upcoming and past CTF events from around the world","A tool for password cracking","A repository for exploit code"],c:1},
+
+{t:10,d:"easy",q:"What is WebGoat?",
+ a:["A legitimate production web application framework","A deliberately insecure web application for learning web security","A web application firewall","A spider/crawler tool for OSINT"],c:1},
+
+{t:10,d:"easy",q:"OWASP Juice Shop is described as:",
+ a:["A tool for scanning web applications","A deliberately insecure modern web application for security training","A database management system","A network monitoring platform"],c:1},
+
+{t:10,d:"easy",q:"Metasploitable is:",
+ a:["A commercial penetration testing framework","A deliberately vulnerable virtual machine used as a practice target","A secure Linux distribution","A wireless security tool"],c:1},
+
+{t:10,d:"easy",q:"What is VulnHub primarily used for?",
+ a:["Online guided learning rooms","A repository of vulnerable virtual machines for offline practice","A bug bounty program management platform","A SAST code scanning service"],c:1},
+
+{t:10,d:"easy",q:"What is a 'bug bounty program'?",
+ a:["A subscription service for cybersecurity tools","A program where organizations reward researchers for responsibly disclosing security vulnerabilities","A type of CTF competition","A government-run security certification"],c:1},
+
+{t:10,d:"medium",q:"HackerOne is primarily known as:",
+ a:["An online CTF platform","A vulnerability disclosure and bug bounty platform","A free Kali Linux hosting service","A social engineering toolkit provider"],c:1},
+
+{t:10,d:"medium",q:"BugCrowd is classified as which type of platform?",
+ a:["A SAST scanning service","A bug bounty and vulnerability disclosure platform","A CTF event organizer","A DAST testing framework"],c:1},
+
+{t:10,d:"easy",q:"What is Privaia Hub used for in cybersecurity training?",
+ a:["Publishing security research papers","Practice machines and real-world attack scenarios","Bug bounty reporting","Static code analysis"],c:1},
+
+{t:10,d:"medium",q:"Root-me.org is described in the lecture as:",
+ a:["A new modern CTF platform","An old but valuable challenge platform","A bug bounty aggregator","A wireless hacking framework"],c:1},
+
+{t:10,d:"easy",q:"Which tool in the aircrack-ng suite is used to put a wireless card into monitor mode?",
+ a:["airodump-ng","aireplay-ng","aircrack-ng","airmon-ng"],c:3},
+
+{t:10,d:"easy",q:"What is Hashcat used for?",
+ a:["Network port scanning","GPU-accelerated password hash cracking","Web application vulnerability scanning","SSL certificate analysis"],c:1},
+
+{t:10,d:"medium",q:"In the lecture's wireless tools, what is 'airgeddon' used for?",
+ a:["DNS zone transfers","An all-in-one wireless security auditing tool / bash script for wireless attacks","Scanning for SQL injection","Performing OSINT on LinkedIn"],c:1},
+
+{t:10,d:"medium",q:"What is sqlmap primarily used for?",
+ a:["Scanning wireless networks","Automated SQL injection detection and exploitation","Static source code analysis","Web server directory brute-forcing"],c:1},
+
+{t:10,d:"easy",q:"Metasploit is described as a framework for:",
+ a:["Static application security testing","Network packet capture","Exploitation and post-exploitation activities","Web directory enumeration"],c:2},
+
+{t:10,d:"medium",q:"What does 'Meterpreter' refer to in the Metasploit framework?",
+ a:["A port scanner module","A post-exploitation tool providing an interactive shell on compromised systems","A payload for SQL injection","A wireless key recovery tool"],c:1},
+
+{t:10,d:"hard",q:"The sqlmap tool has a feature described as 'automatic recognition of password hash formats and support for cracking them using a dictionary-based attack.' What is this referring to?",
+ a:["Using Nmap scripts to find hash types","Sqlmap's built-in hash detection and dictionary cracking capability for extracted password data","A manual John the Ripper integration","A Hashcat module within sqlmap"],c:1},
+
+{t:10,d:"medium",q:"Which pentesting cheat sheet resource is mentioned in the lecture as 'book.hacktricks.xyz'?",
+ a:["An official OWASP guide","A comprehensive community-maintained hacking reference covering many attack categories","A Kali Linux tool manual","A formal ISO cybersecurity standard"],c:1},
+
+{t:10,d:"easy",q:"What does John the Ripper specialize in?",
+ a:["Web application scanning","Password cracking using dictionary, brute force, and hybrid attacks","Network port scanning","SQL injection automation"],c:1},
+
+{t:10,d:"medium",q:"What is the difference between VulnHub and HackTheBox in terms of access?",
+ a:["VulnHub is paid; HackTheBox is free","VulnHub provides downloadable VMs for offline use; HackTheBox provides online cloud-hosted machines","They are identical services","VulnHub is for CTFs; HackTheBox is for bug bounty"],c:1},
+
+{t:10,d:"hard",q:"According to the lecture, what command is used to run SpiderFoot locally?",
+ a:["./spiderfoot.py","python3 sf.py -l 127.0.0.1:5001","spiderfoot --start","python sf.py --listen 5001"],c:1},
+
+{t:10,d:"medium",q:"What is Recon-ng listed as in the lecture?",
+ a:["A wireless attack framework","A passive reconnaissance tool","An active network scanner","A SQL injection exploitation toolkit"],c:1},
+
+/* ============================================================
+   BONUS / CROSS-TOPIC QUESTIONS
+   ============================================================ */
+{t:1,d:"hard",q:"Which Kali Linux tool category covers 'Sniffing & Spoofing'?",
+ a:["Forensics Tools","Wireless Attacks","Sniffing & Spoofing","Hardware Hacking"],c:2},
+
+{t:2,d:"hard",q:"Which DNS record type specifies the mail server for a domain?",
+ a:["A record","CNAME record","MX record","TXT record"],c:2},
+
+{t:3,d:"hard",q:"In Nmap, what does the '-sC' flag activate?",
+ a:["Comprehensive port scanning","SYN stealth scan","Default NSE script scanning","Certificate validation"],c:2},
+
+{t:4,d:"hard",q:"The ESSID in wireless networking refers to:",
+ a:["The MAC address of a client","The extended service set identifier — the human-readable name of the wireless network","The encryption key","The IP address of the access point"],c:1},
+
+{t:5,d:"hard",q:"BeEF starts a web service on which port by default?",
+ a:["8080","443","3000","4444"],c:2},
+
+{t:6,d:"hard",q:"YARA is described in the lecture as a tool used for:",
+ a:["Web application firewall rule management","Helping malware researchers identify and classify malware samples using signature rules","DNS zone transfer enumeration","Wireless packet injection"],c:1},
+
+{t:7,d:"hard",q:"Which DAST tool list URL is provided in the lecture for reference?",
+ a:["https://owasp.org/www-community/Vulnerability_Scanning_Tools","https://nvd.nist.gov/tools","https://www.kali.org/tools/","https://cve.mitre.org/"],c:0},
+
+{t:8,d:"hard",q:"SQL was first standardized by which organizations?",
+ a:["IETF and W3C","ANSI in 1986 and ISO in 1987","IEEE and NIST","ACM and IEEE"],c:1},
+
+{t:9,d:"hard",q:"In a Flask app, which decorator protects a route requiring a valid user session before access?",
+ a:["@session_required","@login_required","@auth_required","@protected_route"],c:1},
+
+{t:10,d:"hard",q:"What is 'eaphammer' referenced for in the lecture's wireless tools?",
+ a:["WPA2 handshake capture","Evil twin / EAP-based wireless attacks","WEP key cracking","Bluetooth exploitation"],c:1},
+
+{t:1,d:"medium",q:"What is the recommended minimum RAM when installing Kali Linux on VirtualBox according to the lecture?",
+ a:["1GB","2GB","4GB","8GB"],c:2},
+
+{t:1,d:"medium",q:"What is the recommended minimum virtual hard disk size for a Kali Linux VirtualBox installation?",
+ a:["10GB","20GB","40GB","100GB"],c:1},
+
+{t:2,d:"medium",q:"Which advanced Nmap command scans a target with NSE vulnerability scripts, version detection, SYN scan, no ping, and minimum rate of 3000?",
+ a:["nmap -sT -sV 192.168.1.1","sudo nmap -sV -sS -sC -n -T4 --min-rate 3000 -p- [target]","nmap -A -Pn 192.168.1.1","sudo nmap --vuln 192.168.1.1"],c:1},
+
+{t:3,d:"medium",q:"What is the function of Nmap's '-T4' timing template?",
+ a:["Limits scan to only 4 ports","Speeds up scanning with aggressive timing","Scans 4 hosts simultaneously","Performs 4 retry attempts per port"],c:1},
+
+{t:5,d:"medium",q:"What social engineering attack impersonates a known individual or organization to deliver malicious files attached to emails?",
+ a:["Watering hole attack","USB drop attack","Spear phishing email with malicious attachment","Shoulder surfing"],c:2},
+
+{t:6,d:"medium",q:"According to the OWASP website, the OWASP Top 10 represents:",
+ a:["A complete list of all known vulnerabilities","A broad consensus about the most critical security risks to web applications","The top ten tools used by ethical hackers","The ten most expensive cybersecurity certifications"],c:1},
+
+{t:7,d:"medium",q:"What does the 'wpscan' tool specifically target for vulnerability assessment?",
+ a:["Joomla CMS sites","Drupal CMS sites","WordPress sites","Magento e-commerce sites"],c:2},
+
+{t:8,d:"medium",q:"What does the SQL JOIN statement do?",
+ a:["Splits a table into multiple parts","Combines rows from two or more tables based on a related column","Merges two databases into one","Encrypts data across multiple tables"],c:1},
+
+{t:9,d:"medium",q:"What is 'network-level isolation' as a platform-level defense against SQL injection?",
+ a:["Encrypting all SQL queries","Placing the database server on an isolated network segment to prevent lateral movement after a breach","Using a WAF in front of the application","Implementing parameterized queries at the code level"],c:1},
+
+{t:10,d:"medium",q:"Intigriti is mentioned in the lecture as which type of platform?",
+ a:["An online CTF competition platform","A bug bounty and vulnerability disclosure platform","A SAST code analysis tool","A wireless security toolkit"],c:1}
+
+]; /* END RAW_QUESTIONS */
+
+/* ============================================================
+   APP STATE
+   ============================================================ */
+const state = {
+  allQ: [],
+  activeQ: [],
+  currentIdx: 0,
+  answers: {},       // { shuffledIdx: { selectedOptIdx, correct, correctOptIdx } }
+  shuffledOpts: {},  // { shuffledIdx: [originalIndices] }
+  correctCount: 0,
+  wrongCount: 0,
+  shuffleQ: true,
+  shuffleA: true,
+  instantMode: false,
+  selectedTopics: new Set(Object.keys(TOPICS).map(Number))
+};
+
+/* ============================================================
+   UTILITY FUNCTIONS
+   ============================================================ */
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getEl(id) { return document.getElementById(id); }
+function setHTML(id, html) { getEl(id).innerHTML = html; }
+function setText(id, text) { getEl(id).textContent = text; }
+
+/* ============================================================
+   SCREEN MANAGEMENT
+   ============================================================ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  getEl(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   START SCREEN SETUP
+   ============================================================ */
+function initStartScreen() {
+  // Build topic grid
+  const grid = getEl('topic-grid');
+  grid.innerHTML = '';
+  Object.entries(TOPICS).forEach(([key, name]) => {
+    const t = parseInt(key);
+    const count = RAW_QUESTIONS.filter(q => q.t === t).length;
+    const btn = document.createElement('button');
+    btn.className = 'topic-btn selected';
+    btn.dataset.topic = t;
+    btn.innerHTML = `<span class="t-dot"></span>${name} <span style="color:var(--text-dim);margin-left:auto;font-size:10px">(${count})</span>`;
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('selected');
+      if (btn.classList.contains('selected')) {
+        state.selectedTopics.add(t);
+      } else {
+        state.selectedTopics.delete(t);
+      }
+      updateMetaCount();
+    });
+    grid.appendChild(btn);
+  });
+
+  updateMetaCount();
+
+  // Select/Clear all
+  getEl('btn-select-all').addEventListener('click', () => {
+    document.querySelectorAll('.topic-btn').forEach(b => {
+      b.classList.add('selected');
+      state.selectedTopics.add(parseInt(b.dataset.topic));
+    });
+    updateMetaCount();
+  });
+
+  getEl('btn-clear-all').addEventListener('click', () => {
+    document.querySelectorAll('.topic-btn').forEach(b => {
+      b.classList.remove('selected');
+      state.selectedTopics.delete(parseInt(b.dataset.topic));
+    });
+    updateMetaCount();
+  });
+
+  // Toggle options
+  ['toggle-shuffle-q', 'toggle-shuffle-a', 'toggle-instant'].forEach(id => {
+    const el = getEl(id);
+    el.addEventListener('click', () => {
+      el.classList.toggle('on');
+      if (id === 'toggle-shuffle-q') state.shuffleQ = el.classList.contains('on');
+      if (id === 'toggle-shuffle-a') state.shuffleA = el.classList.contains('on');
+      if (id === 'toggle-instant') state.instantMode = el.classList.contains('on');
+    });
+  });
+
+  // Start button
+  getEl('btn-start').addEventListener('click', startQuiz);
+}
+
+function updateMetaCount() {
+  const count = RAW_QUESTIONS.filter(q => state.selectedTopics.has(q.t)).length;
+  setText('meta-count', count);
+}
+
+/* ============================================================
+   QUIZ LOGIC
+   ============================================================ */
+function startQuiz() {
+  if (state.selectedTopics.size === 0) {
+    alert('Please select at least one topic!');
+    return;
+  }
+
+  // Filter questions by selected topics
+  let questions = RAW_QUESTIONS.filter(q => state.selectedTopics.has(q.t));
+
+  // Shuffle questions
+  if (state.shuffleQ) questions = shuffleArray(questions);
+
+  state.activeQ = questions;
+  state.currentIdx = 0;
+  state.answers = {};
+  state.shuffledOpts = {};
+  state.correctCount = 0;
+  state.wrongCount = 0;
+
+  // Pre-shuffle answer options
+  state.activeQ.forEach((q, idx) => {
+    if (state.shuffleA) {
+      const mapping = shuffleArray([0, 1, 2, 3]);
+      state.shuffledOpts[idx] = mapping;
+    } else {
+      state.shuffledOpts[idx] = [0, 1, 2, 3];
+    }
+  });
+
+  setText('live-correct', '0');
+  setText('live-wrong', '0');
+
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = state.activeQ[state.currentIdx];
+  const idx = state.currentIdx;
+  const total = state.activeQ.length;
+
+  // Progress
+  const pct = Math.round((idx / total) * 100);
+  getEl('progress-bar').style.width = pct + '%';
+  setText('progress-text', `Question ${idx + 1} of ${total}`);
+  setText('progress-pct', pct + '%');
+
+  // Topic badge
+  setText('q-topic-badge', TOPICS[q.t]);
+
+  // Question number with difficulty
+  const diffLabel = q.d.charAt(0).toUpperCase() + q.d.slice(1);
+  getEl('q-number').innerHTML = `QUESTION ${String(idx + 1).padStart(2, '0')} <span class="diff-badge diff-${q.d}">${diffLabel}</span>`;
+
+  // Question text
+  setText('q-text', q.q);
+
+  // Options
+  const mapping = state.shuffledOpts[idx]; // mapping[displayPos] = originalIdx
+  const optsList = getEl('options-list');
+  optsList.innerHTML = '';
+
+  const letters = ['A', 'B', 'C', 'D'];
+  mapping.forEach((origIdx, displayPos) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.dataset.dispPos = displayPos;
+    btn.dataset.origIdx = origIdx;
+
+    btn.innerHTML = `<span class="option-letter">${letters[displayPos]}</span><span class="option-text">${q.a[origIdx]}</span>`;
+
+    btn.addEventListener('click', () => handleOptionClick(btn, origIdx, displayPos));
+    optsList.appendChild(btn);
+  });
+
+  // Restore previous answer state if navigating back
+  const prevAnswer = state.answers[idx];
+  if (prevAnswer !== undefined) {
+    restoreAnswerState(idx);
+  }
+
+  // Nav buttons
+  getEl('btn-prev').disabled = idx === 0;
+  getEl('btn-next').textContent = idx === total - 1 ? 'FINISH ✓' : 'NEXT →';
+
+  // Submit button visibility
+  const submitBtn = getEl('btn-submit-answer');
+  if (state.instantMode || prevAnswer !== undefined) {
+    submitBtn.style.display = 'none';
+  } else {
+    submitBtn.style.display = 'none'; // only show if option selected
+  }
+
+  // Feedback
+  const fb = getEl('feedback-banner');
+  fb.className = 'feedback-banner';
+  if (prevAnswer !== undefined) {
+    showFeedback(idx);
+  }
+}
+
+function handleOptionClick(btn, origIdx, displayPos) {
+  const idx = state.currentIdx;
+  const q = state.activeQ[idx];
+
+  // If already answered, do nothing
+  if (state.answers[idx] !== undefined) return;
+
+  // In instant mode, submit immediately
+  if (state.instantMode) {
+    submitAnswer(origIdx);
+    return;
+  }
+
+  // Otherwise, mark as selected (pending)
+  document.querySelectorAll('.option-btn').forEach(b => {
+    b.classList.remove('selected');
+  });
+  btn.classList.add('selected');
+
+  // Show submit button
+  const submitBtn = getEl('btn-submit-answer');
+  submitBtn.style.display = 'inline-flex';
+  submitBtn.onclick = () => submitAnswer(origIdx);
+}
+
+function submitAnswer(chosenOrigIdx) {
+  const idx = state.currentIdx;
+  const q = state.activeQ[idx];
+  const isCorrect = chosenOrigIdx === q.c;
+
+  state.answers[idx] = {
+    chosen: chosenOrigIdx,
+    correct: isCorrect,
+    correctOrigIdx: q.c
+  };
+
+  if (isCorrect) {
+    state.correctCount++;
+    setText('live-correct', state.correctCount);
+  } else {
+    state.wrongCount++;
+    setText('live-wrong', state.wrongCount);
+  }
+
+  // Hide submit button
+  getEl('btn-submit-answer').style.display = 'none';
+
+  restoreAnswerState(idx);
+  showFeedback(idx);
+}
+
+function restoreAnswerState(idx) {
+  const answer = state.answers[idx];
+  if (answer === undefined) return;
+
+  const mapping = state.shuffledOpts[idx];
+  const { chosen, correctOrigIdx } = answer;
+
+  document.querySelectorAll('.option-btn').forEach(btn => {
+    const origIdx = parseInt(btn.dataset.origIdx);
+    btn.classList.remove('selected', 'correct', 'wrong', 'dimmed');
+
+    if (origIdx === correctOrigIdx) {
+      btn.classList.add('correct');
+    } else if (origIdx === chosen && !answer.correct) {
+      btn.classList.add('wrong');
+    } else if (origIdx !== chosen && origIdx !== correctOrigIdx) {
+      btn.classList.add('dimmed');
+    }
+  });
+}
+
+function showFeedback(idx) {
+  const answer = state.answers[idx];
+  if (!answer) return;
+
+  const q = state.activeQ[idx];
+  const fb = getEl('feedback-banner');
+
+  if (answer.correct) {
+    fb.className = 'feedback-banner correct-fb show';
+    getEl('fb-icon').textContent = '✔';
+    getEl('fb-text').innerHTML = '<strong>Correct!</strong> Well done.';
+  } else {
+    fb.className = 'feedback-banner wrong-fb show';
+    getEl('fb-icon').textContent = '✘';
+    getEl('fb-text').innerHTML = `<strong>Incorrect.</strong> The correct answer is: <strong>${q.a[q.c]}</strong>`;
+  }
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+getEl('btn-next').addEventListener('click', () => {
+  const idx = state.currentIdx;
+  const total = state.activeQ.length;
+
+  // If no answer given and not instant mode, auto-skip but don't record
+  if (state.currentIdx < total - 1) {
+    state.currentIdx++;
+    renderQuestion();
+  } else {
+    // Last question
+    showResults();
+  }
+});
+
+getEl('btn-prev').addEventListener('click', () => {
+  if (state.currentIdx > 0) {
+    state.currentIdx--;
+    renderQuestion();
+  }
+});
+
+/* ============================================================
+   RESULTS
+   ============================================================ */
+function showResults() {
+  const total = state.activeQ.length;
+  const correct = state.correctCount;
+  const wrong = state.wrongCount;
+  const answered = correct + wrong;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+  setText('res-correct', correct);
+  setText('res-wrong', wrong);
+  setText('res-total', total);
+  setText('res-score', correct);
+  setText('res-pct', pct + '%');
+
+  // Score circle
+  const circle = getEl('score-circle');
+  circle.style.setProperty('--pct', pct + '%');
+
+  // Rating
+  let rating, ratingClass;
+  if (pct >= 85) { rating = '🏆 ELITE HACKER'; ratingClass = 'rating-excellent'; }
+  else if (pct >= 70) { rating = '✅ EXCELLENT'; ratingClass = 'rating-good'; }
+  else if (pct >= 55) { rating = '👍 GOOD'; ratingClass = 'rating-good'; }
+  else if (pct >= 40) { rating = '📚 NEEDS REVIEW'; ratingClass = 'rating-average'; }
+  else { rating = '⚠ TRY AGAIN'; ratingClass = 'rating-review'; }
+
+  const badge = getEl('rating-badge');
+  badge.textContent = rating;
+  badge.className = 'rating-badge ' + ratingClass;
+
+  // Progress bar final
+  getEl('progress-bar').style.width = '100%';
+  setText('progress-pct', '100%');
+
+  showScreen('screen-results');
+}
+
+getEl('btn-restart').addEventListener('click', startQuiz);
+getEl('btn-back-home').addEventListener('click', () => showScreen('screen-start'));
+getEl('btn-review-mistakes').addEventListener('click', showReview);
+getEl('btn-review-back').addEventListener('click', () => showScreen('screen-results'));
+getEl('btn-review-back-2').addEventListener('click', () => showScreen('screen-results'));
+
+/* ============================================================
+   REVIEW MISTAKES
+   ============================================================ */
+function showReview() {
+  // Collect wrong answers
+  const mistakes = [];
+  Object.entries(state.answers).forEach(([idxStr, ans]) => {
+    if (!ans.correct) {
+      const idx = parseInt(idxStr);
+      mistakes.push({ idx, q: state.activeQ[idx], ans });
+    }
+  });
+
+  const count = mistakes.length;
+  setText('review-subtitle', `${count} incorrect answer${count !== 1 ? 's' : ''} to review`);
+
+  if (count === 0) {
+    setHTML('review-list', '<div style="text-align:center;color:var(--accent-green);padding:40px;font-size:14px;">🎉 No mistakes! Perfect score on answered questions.</div>');
+    getEl('review-filter-bar').innerHTML = '';
+    showScreen('screen-review');
+    return;
+  }
+
+  // Build topic filter
+  const topicsInMistakes = [...new Set(mistakes.map(m => m.q.t))];
+  const filterBar = getEl('review-filter-bar');
+  filterBar.innerHTML = '';
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'filter-chip active';
+  allBtn.textContent = `All (${count})`;
+  allBtn.dataset.topic = 'all';
+  filterBar.appendChild(allBtn);
+
+  topicsInMistakes.forEach(t => {
+    const topicCount = mistakes.filter(m => m.q.t === t).length;
+    const btn = document.createElement('button');
+    btn.className = 'filter-chip';
+    btn.textContent = `T${t}: ${topicCount}`;
+    btn.title = TOPICS[t];
+    btn.dataset.topic = t;
+    filterBar.appendChild(btn);
+  });
+
+  filterBar.addEventListener('click', (e) => {
+    const chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const topic = chip.dataset.topic;
+    const filtered = topic === 'all' ? mistakes : mistakes.filter(m => m.q.t === parseInt(topic));
+    renderReviewList(filtered);
+  });
+
+  renderReviewList(mistakes);
+  showScreen('screen-review');
+}
+
+function renderReviewList(mistakes) {
+  const list = getEl('review-list');
+  list.innerHTML = '';
+
+  mistakes.forEach((m, i) => {
+    const { q, ans, idx } = m;
+    const mapping = state.shuffledOpts[idx];
+
+    const item = document.createElement('div');
+    item.className = 'review-item';
+
+    const answerRows = mapping.map(origIdx => {
+      const isCorrect = origIdx === ans.correctOrigIdx;
+      const isChosen = origIdx === ans.chosen;
+      let cls = '';
+      let icon = '';
+      if (isCorrect) { cls = 'r-correct'; icon = '✔'; }
+      else if (isChosen) { cls = 'r-wrong'; icon = '✘'; }
+      else return '';
+
+      return `<div class="review-answer ${cls}">
+        <span class="review-answer-icon">${icon}</span>
+        <span class="review-answer-text">${q.a[origIdx]}</span>
+      </div>`;
+    }).join('');
+
+    item.innerHTML = `
+      <div class="review-q-num">Q${idx + 1} · ${TOPICS[q.t]}</div>
+      <div class="review-q-text">${q.q}</div>
+      <div class="review-answers">${answerRows}</div>`;
+
+    list.appendChild(item);
+  });
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener('load', () => {
+  initStartScreen();
+
+  // Update initial toggle states
+  state.shuffleQ = true;
+  state.shuffleA = true;
+  state.instantMode = false;
+
+  // Hide loading overlay
+  setTimeout(() => {
+    const overlay = getEl('loading-overlay');
+    overlay.style.transition = 'opacity 0.4s ease';
+    overlay.style.opacity = '0';
+    setTimeout(() => { overlay.style.display = 'none'; }, 400);
+    showScreen('screen-start');
+  }, 600);
+});
+
+</script>
+</body>
+</html>
