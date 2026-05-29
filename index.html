@@ -18,7 +18,6 @@
   --border:        #1a2d45;
   --border-glow:   #00d4ff;
   --accent-cyan:   #00d4ff;
-   --accent-blue:   #0088ff;
   --accent-blue:   #0088ff;
   --accent-green:  #00ff88;
   --accent-red:    #ff3355;
@@ -1957,9 +1956,10 @@ function showScreen(id) {
    START SCREEN SETUP
    ============================================================ */
 function initStartScreen() {
-  // Build topic grid
+  // Build topic grid - use DocumentFragment for better performance
   const grid = getEl('topic-grid');
-  grid.innerHTML = '';
+  const fragment = document.createDocumentFragment();
+  
   Object.entries(TOPICS).forEach(([key, name]) => {
     const t = parseInt(key);
     const count = RAW_QUESTIONS.filter(q => q.t === t).length;
@@ -1976,9 +1976,12 @@ function initStartScreen() {
       }
       updateMetaCount();
     });
-    grid.appendChild(btn);
+    fragment.appendChild(btn);
   });
-
+  
+  grid.innerHTML = '';
+  grid.appendChild(fragment); // Single DOM update instead of 10+ updates
+  
   updateMetaCount();
 
   // Select/Clear all
@@ -2058,6 +2061,13 @@ function startQuiz() {
 }
 
 function renderQuestion() {
+  // Safety check
+  if (!state.activeQ || state.activeQ.length === 0 || state.currentIdx >= state.activeQ.length) {
+    console.error('Invalid state in renderQuestion');
+    showResults();
+    return;
+  }
+  
   const q = state.activeQ[state.currentIdx];
   const idx = state.currentIdx;
   const total = state.activeQ.length;
@@ -2215,26 +2225,33 @@ function showFeedback(idx) {
 /* ============================================================
    NAVIGATION
    ============================================================ */
-getEl('btn-next').addEventListener('click', () => {
+// Remove existing listeners before adding new ones (or use named functions)
+function handleNextClick() {
   const idx = state.currentIdx;
   const total = state.activeQ.length;
 
-  // If no answer given and not instant mode, auto-skip but don't record
   if (state.currentIdx < total - 1) {
     state.currentIdx++;
     renderQuestion();
   } else {
-    // Last question
     showResults();
   }
-});
+}
 
-getEl('btn-prev').addEventListener('click', () => {
+function handlePrevClick() {
   if (state.currentIdx > 0) {
     state.currentIdx--;
     renderQuestion();
   }
-});
+}
+
+// Remove old listeners and add new ones
+const nextBtn = getEl('btn-next');
+const prevBtn = getEl('btn-prev');
+nextBtn.removeEventListener('click', handleNextClick);
+prevBtn.removeEventListener('click', handlePrevClick);
+nextBtn.addEventListener('click', handleNextClick);
+prevBtn.addEventListener('click', handlePrevClick);
 
 /* ============================================================
    RESULTS
@@ -2378,16 +2395,29 @@ function renderReviewList(mistakes) {
    INIT
    ============================================================ */
 window.addEventListener('load', () => {
+  // Update initial toggle states
+  state.shuffleQ = true;
+  state.shuffleA = true;
+  state.instantMode = false;
+  
+  // Initialize start screen FIRST
   initStartScreen();
-
-  // Hide loading overlay
-  setTimeout(() => {
+  
+  // Hide loading overlay AFTER everything is ready
+  // Use requestAnimationFrame to ensure DOM is painted
+  requestAnimationFrame(() => {
     const overlay = getEl('loading-overlay');
-    overlay.style.transition = 'opacity 0.4s ease';
-    overlay.style.opacity = '0';
-    setTimeout(() => { overlay.style.display = 'none'; }, 400);
-    showScreen('screen-start');
-  }, 600);
+    if (overlay) {
+      overlay.style.transition = 'opacity 0.4s ease';
+      overlay.style.opacity = '0';
+      setTimeout(() => { 
+        overlay.style.display = 'none';
+        showScreen('screen-start');
+      }, 400);
+    } else {
+      showScreen('screen-start');
+    }
+  });
 });
 
 </script>
