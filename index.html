@@ -1774,7 +1774,7 @@ const RAW_QUESTIONS = [
  a:["A physical cybersecurity lab at a university","An online cybersecurity training platform with machines, challenges, and pro labs","A SQL injection testing tool","A wireless packet analyzer"],c:1},
 
 {t:10,d:"easy",q:"What is TryHackMe known for in cybersecurity training?",
- a:["Providing static study guides only","Online learning platform with guided rooms, King of the Hill competitions, and CTF challenges","A premium paid-only penetration testing framework","A hardware hacking toolkit"},c:1},
+ a:["Online learning platform with guided rooms, King of the Hill competitions, and CTF challenges","A premium paid-only penetration testing framework","Static study guides only","A hardware hacking toolkit"],c:0},
 
 {t:10,d:"easy",q:"What does CTF stand for in the cybersecurity training context?",
  a:["Certified Testing Framework","Capture The Flag — a competitive cybersecurity challenge","Central Training Facility","Cryptographic Token Forgery"],c:1},
@@ -2214,26 +2214,27 @@ function showFeedback(idx) {
 /* ============================================================
    NAVIGATION
    ============================================================ */
-getEl('btn-next').addEventListener('click', () => {
-  const idx = state.currentIdx;
-  const total = state.activeQ.length;
+  // Navigation event listeners - moved inside load event
+  getEl('btn-next').addEventListener('click', () => {
+    const idx = state.currentIdx;
+    const total = state.activeQ.length;
 
-  // If no answer given and not instant mode, auto-skip but don't record
-  if (state.currentIdx < total - 1) {
-    state.currentIdx++;
-    renderQuestion();
-  } else {
-    // Last question
-    showResults();
-  }
-});
+    // If no answer given and not instant mode, auto-skip but don't record
+    if (state.currentIdx < total - 1) {
+      state.currentIdx++;
+      renderQuestion();
+    } else {
+      // Last question
+      showResults();
+    }
+  });
 
-getEl('btn-prev').addEventListener('click', () => {
-  if (state.currentIdx > 0) {
-    state.currentIdx--;
-    renderQuestion();
-  }
-});
+  getEl('btn-prev').addEventListener('click', () => {
+    if (state.currentIdx > 0) {
+      state.currentIdx--;
+      renderQuestion();
+    }
+  });
 
 /* ============================================================
    RESULTS
